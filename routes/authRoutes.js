@@ -59,28 +59,33 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// Google OAuth
+// Google OAuth (Google Identity Services)
 router.post("/google", async (req, res) => {
-  const { token } = req.body;
+  // GSI sends the ID token in `credential` field; older examples use `token`.
+  const idToken = req.body.credential || req.body.token || req.body.idToken;
+
   try {
-    if (!token) {
-      return res.status(400).json({ message: "Token is required" });
+    if (!idToken) {
+      return res
+        .status(400)
+        .json({ message: "ID token (credential) is required" });
     }
 
     const ticket = await oauth2Client.verifyIdToken({
-      idToken: token,
+      idToken,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
-    const { email, name, picture } = ticket.getPayload();
+    const payload = ticket.getPayload();
+    const { email, name, picture, sub } = payload; // sub is the Google user id
 
     let user = await User.findOne({ email });
     if (!user) {
       user = await User.create({
-        name,
+        name: name || "",
         email,
         role: "user",
-        googleId: ticket.getUserId(),
+        googleId: sub,
         profilePic: picture,
       });
     }
