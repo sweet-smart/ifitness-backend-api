@@ -42,6 +42,12 @@ router.post("/signup", async (req, res) => {
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   try {
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
+    }
+
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
@@ -53,7 +59,16 @@ router.post("/login", async (req, res) => {
       expiresIn: "7d",
     });
 
-    res.json({ user, token });
+    res.json({
+      message: "Login successful",
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
+      token,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
