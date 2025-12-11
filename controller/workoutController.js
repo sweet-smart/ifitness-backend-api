@@ -1,4 +1,4 @@
-import WorkoutPlan from "../models/WorkoutPlan.js";
+import WorkoutPlan from "../models/workoutPlan.js";
 
 export const createWorkout = async (req, res) => {
   const workout = await WorkoutPlan.create(req.body);
