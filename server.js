@@ -16,21 +16,28 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// DB Connection
+// -------------------- DB CONNECTION --------------------
 connectDB();
 
-// Health check for Render
+// -------------------- ROOT ROUTE (Fix for Render "Cannot GET /") --------------------
+app.get("/", (req, res) => {
+  res.send("FitnessAI Backend is running...");
+});
+
+// -------------------- HEALTH CHECK --------------------
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     status: "OK",
     message: "Backend connected",
+    timestamp: Date.now(),
   });
 });
 
-// Alias route for frontend (POST /api/login -> POST /api/auth/login)
+// -------------------- LOGIN ALIAS ROUTE --------------------
 app.post("/api/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+
     if (!email || !password) {
       return res
         .status(400)
@@ -67,15 +74,13 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-// Routes
+// -------------------- PROTECTED ROUTES --------------------
 app.use("/api/auth", authRoutes);
 app.use("/api/users", verifyToken, userRoutes);
 app.use("/api/workouts", verifyToken, workoutRoutes);
 app.use("/api/meals", verifyToken, mealRoutes);
 app.use("/api/progress", verifyToken, progressRoutes);
 
-// --- FIX FOR RENDER ---
+// -------------------- START SERVER --------------------
 const PORT = process.env.PORT || 9000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
